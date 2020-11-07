@@ -20,8 +20,9 @@ const User = db.define("user", {
   },
 });
 
-User.generateHash = (password) => {
-  return bcrypt.hash(password, bcrypt.genSaltSync(10));
+User.generateHashedPassword = (password) => {
+  const hashedPassword = bcrypt.hash(password, bcrypt.genSaltSync(10));
+  return hashedPassword;
 };
 
 User.prototype.validatePassword = (password) => {
@@ -30,24 +31,22 @@ User.prototype.validatePassword = (password) => {
 
 User.beforeCreate(async (user) => {
   try {
-    const hashedPassword = await User.generateHash(user.password);
-    user.password = hashedPassword;
+    user.password = await User.generateHashedPassword(user.password);
   } catch (err) {
     console.log(err);
   }
 });
 
-User.beforeUpdate(async (user, oldPassword, newPassword) => {
+User.updatePassword = async (user, oldPassword, newPassword) => {
   if (user.validatePassword(oldPassword)) {
     try {
-      const hashedPassword = await User.generateHash(newPassword);
-      user.password = hashedPassword;
+      user.password = await User.generateHashedPassword(newPassword);
     } catch (err) {
       console.log(err);
     }
   } else {
     await Promise.reject(new Error("Error, passwords do not match."));
   }
-});
+};
 
 module.exports = User;
