@@ -41,6 +41,7 @@ User.updatePassword = async (user, oldPassword, newPassword) => {
   if (user.validatePassword(oldPassword)) {
     try {
       user.password = await User.generateHashedPassword(newPassword);
+      await user.save();
     } catch (err) {
       console.log(err);
     }
